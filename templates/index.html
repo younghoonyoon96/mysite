@@ -102,6 +102,91 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
     <link href="{{url_for('static', filename='css/dashboard.css')}}" rel="stylesheet">
+
+    <!-- side bar에 투자 전략에 관련한 태그들의 이벤트 -->
+ <script>
+
+    // 문서가 준비되었을 때 -> 문서가 정상적으로 모두 로드가 되었을 때
+    $(document).ready(
+        function(){
+            // id가 send_data인 태그를 선택
+            // 클릭이 되었을 때
+            $('#send_data').click(
+                // 행동을 한다
+                function(){
+                    // id가 code인 태그에서 value를 가져온다
+                    let code = $('#code').val()
+                    // id가 s_year, s_month, s_day인 데이터를 가져온다
+                    let s_year = $('#s_year').val()
+                    let s_month = $('#s_month').val()
+                    let s_day = $('#s_day').val()
+                    let e_year = $('#e_year').val()
+                    let e_month = $('#e_month').val()
+                    let e_day = $('#e_day').val()
+                    let kind = $('#kind').val()
+                    // alert([code, s_year, s_month, s_day, e_year, e_month, e_day, kind])
+                    // 수집된 데이터들을 ajax를 이용해서 데이터를 보낸다
+                    $.ajax(
+                      {
+                        url: '/invest',
+                        method: 'get',
+                        dataType: 'json',
+                        data: {
+                          'code' : code,
+                          's_year': s_year,
+                          's_month': s_month,
+                          's_day': s_day,
+                          'e_year': e_year,
+                          'e_month': e_month,
+                          'e_day': e_day,
+                          'kind': kind
+                        }
+                      }
+                    ).then(
+                      // 데이터를 받아오는 부분
+                      function(res){
+                        // res -> {'columns': 테이블의 첫행, 'values' : 테이블의 데이터}
+                        // graph 함수 호출 인자로는 res에 x축 데이터와 y축 데이터를 입력
+                        myChart.data.labels= res['axis_x']
+                        myChart.data.datasets[0].data =res['axis_y']
+                        myChart.update();
+                        let columns = res['columns']
+                        let values = res['values']
+                        html_tag = `
+                          <thead>
+                            <tr>
+                        `
+                        // columns를 가지고 반복문을 생성
+                        // python: for col in columns
+                        for (let col of columns){
+                          let tag = `<th>${col}</th>`
+                          html_tag = html_tag + tag
+                        }
+                        tag = "</tr></thead>"
+                        html_tag = html_tag + tag
+                        // 컬럼의 이름 반복 작업 종료
+
+                        // 데이터를 대입 시작
+                        let value_tag = ""
+                        for (let val of values){
+                          value_tag = value_tag + '<tr>'
+                            for (let col of columns){
+                              tag = `<td>${val[col]}</td>`
+                              value_tag = value_tag + tag
+                            }
+                          value_tag = value_tag + '</tr>'
+                        }
+
+                        // id가 data_table인 태그를 선택
+                        // html 코드를 변경
+                        $('#data_table').html(html_tag + value_tag)
+                      }
+                    )
+                }
+            )
+        }
+    )
+ </script>
   </head>
   <body>
     <!-- 파이썬 코드로 외부의 html 포함 -->
@@ -134,36 +219,8 @@
       <h2>Section title</h2>
       <!-- 표가 대입이되는 부분 table 태그가 존재 -->
       <div class="table-responsive small">
-        <table class="table table-striped table-sm">
-          <!-- 테이블에서 컬럼의 이름 : 데이터프레임에서 columns -->
-          <thead>
-            <tr>
-              <!-- 컬럼의 이름들을 반복문을 이용해 생성 -->
-              {% for col in columns %}
-                <!-- 반복 실행되는 부분 -->
-                <th scope="col">{{col}}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <!-- 데이터프레임에서 values : 리스트 안에 딕셔너리 -->
-          <tbody>
-            <!-- 1차 반복 리스트 기준으로 -->
-            {% for val in values %}
-            <tr>
-              <!-- 딕셔너리 -> 컬럼 값들을 이용해 반복 실행 -->
-              <!-- <td>{{val['Date']}}</td>
-              <td>{{val['Open']}}</td>
-              <td>{{val['High']}}</td>
-              <td>{{val['Low']}}</td>
-              <td>{{val['Close']}}</td>
-              <td>{{val['Adj Close']}}</td>
-              <td>{{val['Volume']}}</td> -->
-              {% for col in columns %}
-                <td>{{val[col]}}</td>
-              {% endfor %}
-            </tr>
-            {% endfor %}
-          </tbody>
+        <table class="table table-striped table-sm" id="data_table">
+          
         </table>
       </div>
     </main>
@@ -174,44 +231,44 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.2/dist/chart.umd.js" integrity="sha384-eI7PSr3L1XLISH8JdDII5YN/njoSsxfbrkCTnJrzXt+ENP5MOVBxD+l6sEG4zoLp" crossorigin="anonymous"></script>
   <script>
-    // Graphs
-    const ctx = document.getElementById('myChart')
-    // eslint-disable-next-line no-unused-vars
-    const myChart = new Chart(ctx, {
-      // type -> 그래프 종류
-      type: 'line',
-      // data -> x축 y의 데이터를 입력하는 공간
-      data: {
-        // data 안에 있는 labels는 x축 데이터
-        labels: {{axis_x | tojson}},
-        // labels: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-        // datasets y축의 데이터 -> 리스트 형태로 구성
-        // y축 데이터는 여러 개를 입력이 가능
-        datasets: [
-          // y축 데이터 1개 dict로 구성
-          {
-            // data y축 데이터
-            data: {{axis_y | tojson}},
-            // data: [15339, 21345, 18483, 24003, 23489, 24092, 12034],
-            lineTension: 0,
-            backgroundColor: 'transparent',
-            borderColor: '#007bff',
-            borderWidth: 4,
-            pointBackgroundColor: '#007bff'
-          }
-        ]
-      },
-      options: {
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            boxPadding: 3
-          }
-        }
-      }
-    })
+        // Graphs
+            let ctx = document.getElementById('myChart')
+            // eslint-disable-next-line no-unused-vars
+            let myChart = new Chart(ctx, {
+              // type -> 그래프 종류
+              type: 'line',
+              // data -> x축 y의 데이터를 입력하는 공간
+              data: {
+                // data 안에 있는 labels는 x축 데이터
+                labels: [],
+                // labels: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                // datasets y축의 데이터 -> 리스트 형태로 구성
+                // y축 데이터는 여러 개를 입력이 가능
+                datasets: [
+                  // y축 데이터 1개 dict로 구성
+                  {
+                    // data y축 데이터
+                    data: [],
+                    // data: [15339, 21345, 18483, 24003, 23489, 24092, 12034],
+                    lineTension: 0,
+                    backgroundColor: 'transparent',
+                    borderColor: '#007bff',
+                    borderWidth: 4,
+                    pointBackgroundColor: '#007bff'
+                  }
+                ]
+              },
+              options: {
+                plugins: {
+                  legend: {
+                    display: false
+                  },
+                  tooltip: {
+                    boxPadding: 3
+                  }
+                }
+              }
+            })
   </script>
   </body>
 </html>
