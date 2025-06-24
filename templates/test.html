@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 유저가 입력하는 공간 -->
+    <form action="/dashboard"method='get'>
+        <div>
+            <label>종목 명</label>
+            <input tpye="text" name="code">
+        </div>
+        <div>
+            <label>투자의 시작 시간</label>
+            <!-- 유저가 선택할 수 있도록 선택 박스 생성 -->
+             <select name="s_year">
+                {% for year in range(2010, 2026)%}
+                <option value="{{year}}">{{year}}</option>
+                {% endfor %}
+             </select>
+             년
+             <select name="s_month">
+                {%for month in range(1,13) %}
+                    <option value="{{month}}">{{month}}</option>
+                {% endfor %}
+             </select>
+             월
+             <select name="s_day">
+                {%for day in range(1,32)%}
+                    <option value="{{day}}">{{day}}</option>
+                {% endfor %}
+             </select>
+             일
+        </div>
+        <div>
+            <label>투자 방법</label>
+            <select name="kind">
+                <option value="bnh">Buy & Hold</option>
+                <option value="boll">볼린저 밴드</option>
+                <option value="hall">할로윈</option>
+                <option value="mmt">모멘텀</option>
+            </select>
+        </div>
+        <div>
+            <input type="submit">
+        </div>
+    </from>
+</body>
+</html>
