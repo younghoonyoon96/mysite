@@ -29,37 +29,29 @@ def index():
 #                            )
     return render_template('test.html')
 
-@app.route('/aapl')
-def aapl():
-    df = pd.read_csv('csv/AAPL.csv')
-    # Quant class 생성
-    quant = Quant(df)
-    # Halloween 전략 사용
-    hall_df, arr_rtn = quant.halloween()
-    # hall_df의 인덱스를 초기화하고 기존의 인덱스는 유지
-    # 기존의 인덱스가 시간 데이터
-    hall_df.reset_index(inplace=True)
-    cols = list(hall_df.columns)
-    value = hall_df.to_dict('records')
-    x = list(hall_df['Date'])
-    y = list(hall_df['acc_rtn'])
-    return render_template('index.html',
-                           columns = cols,
-                           values = value,
-                           axis_x = x,
-                           axis_y = y
-                           )
-@app.route('/dashboard')
-def dashboard():
-    # 유저가 보낸 데이터를 변수에 저장
-    # get 방식으로 보낸 데이터는 request.args에 데이터가 딕셔너리 형태로 존재
+@app.route('/main', methods = ['post'])
+def main():
+    return render_template('index.html')
+
+@app.route('/invest')
+def invest():
     input_code = request.args['code']
     input_start_time = f"{request.args['s_year']}-{request.args['s_month']}-{request.args['s_day']}"
+    input_end_time = f"{request.args['e_year']}-{request.args['e_month']}-{request.args['e_day']}"
     input_kind = request.args['kind']
-    # input_code를 이용하여 파일을 로드
-    # df = pd.read_csv(f'csv/{input_code}.csv')
-    df = load_data(input_code, input_start_time)
-    quant = Quant(df, _start = input_start_time, _col = 'Close')
+    print(
+        f'''
+            {input_code}
+            {input_start_time}
+            {input_end_time}
+            {input_kind}
+        
+        '''
+    )
+
+    # input_code를 이용해서 csv 파일을 로드
+    df= pd.read_csv(f'csv/{input_code}.csv')
+    quant = Quant(df, _start = input_start_time, _end= input_end_time, _col = 'Close')
     if input_kind == 'bnh': 
         result, rtn = quant.buyandhold()
     elif input_kind == 'boll':
@@ -74,14 +66,13 @@ def dashboard():
     value = result.to_dict('records')
     x = list(result['Date'])
     y = list(result['acc_rtn'])
-    return render_template('index.html',
-                           columns = cols,
-                           values = value,
-                           axis_x = x,
-                           axis_y = y
-                           )
-             
-
+    res_data = {
+        'columns': cols,
+        'values': value,
+        'axis_x': x,
+        'axis_y': y
+    }
+    return res_data
 
 # 웹서버 실행
 app.run(debug=True)
