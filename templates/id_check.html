@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>id_check</title>
+    {% include 'header.html' %}
+</head>
+<body>
+    <form action="/id_check" method="get">
+        <div>
+            <label>id</label>
+            <input type="text" name="input_id">
+        </div>
+        <input type="submit" value="아이디 중복 체크">
+    </form>
+</body>
+</html>

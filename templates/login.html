@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    {% include 'header.html' %}
+</head>
+<body>
+    <!-- 로그인 입력창의 공간 -->
+     <form action="/main" method="post">
+        <div>
+            <label>ID</label>
+            <input type="text" name="input_id">
+        </div>
+        <div>
+            <label>Password</label>
+            <input type="password" name="input_pass">
+        </div>
+        <input type="submit" value="로그인">
+     </form>
+     <!-- 회원가입으로 이동 -->
+      <a href="/signup" >회원 가입</a>
+</body>
+</html>

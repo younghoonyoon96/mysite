@@ -124,6 +124,15 @@
                     let e_month = $('#e_month').val()
                     let e_day = $('#e_day').val()
                     let kind = $('#kind').val()
+                    // code와 kind의 데이터를 GA에 이벤트로 보낸다
+                    gtag(
+                      'event',
+                      'invest_select',
+                      {
+                        종목 : code,
+                        전략 : kind
+                      }
+                    )
                     // alert([code, s_year, s_month, s_day, e_year, e_month, e_day, kind])
                     // 수집된 데이터들을 ajax를 이용해서 데이터를 보낸다
                     $.ajax(
